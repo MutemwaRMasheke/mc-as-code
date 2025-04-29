@@ -1,0 +1,30 @@
+name: Deploy Policy Assignment to Resource Group
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'vm-policy.bicep'
+
+jobs:
+  deploy-assignment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Policy Assignment Bicep
+        run: |
+          az deployment group create \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --template-file vm-policy.bicep \
+            --parameters policyAssignmentName='audit-vm-managed-disks' \
+                         policyDefinitionID='/providers/Microsoft.Authorization/policyDefinitions/06a78e20-9358-41c9-923c-fb736d382a4d' \
+                         policyDisplayName='Audit VM managed disks'
